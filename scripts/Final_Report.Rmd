@@ -359,6 +359,49 @@ head(org_kmers_3, 10)
 ecoli_kmers_3 <- count_kmers(ecoli_prot, 3)
 head(ecoli_kmers_3, 10)
 
+
+# Prepare data: take top 10 k-mers for each organism
+top_org_kmers <- head(org_kmers_3, 10)
+top_ecoli_kmers <- head(ecoli_kmers_3, 10)
+
+# Combine into a data frame
+kmers_df <- data.frame(
+  Kmer = c(names(top_org_kmers), names(top_ecoli_kmers)),
+  Frequency = c(as.numeric(top_org_kmers), as.numeric(top_ecoli_kmers)),
+  Organism = rep(c("M. hyopneumoniae ES2", "E. coli"), each = 10)
+)
+
+# Plot
+ggplot(kmers_df, aes(x = reorder(Kmer, -Frequency), y = Frequency, fill = Organism)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Top 10 Overrepresented 3-mers in Proteins",
+       x = "3-mer",
+       y = "Frequency") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Bottom 10 (underrepresented) 3-mers for each organism
+bottom_org_kmers <- tail(org_kmers_3, 10)
+bottom_ecoli_kmers <- tail(ecoli_kmers_3, 10)
+
+# Combine into a data frame
+under_kmers_df <- data.frame(
+  Kmer = c(names(bottom_org_kmers), names(bottom_ecoli_kmers)),
+  Frequency = c(as.numeric(bottom_org_kmers), as.numeric(bottom_ecoli_kmers)),
+  Organism = rep(c("M. hyopneumoniae ES2", "E. coli"), each = 10)
+)
+
+# Plot
+ggplot(under_kmers_df, aes(x = reorder(Kmer, Frequency), y = Frequency, fill = Organism)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Top 10 Underrepresented 3-mers in Proteins",
+       x = "3-mer",
+       y = "Frequency") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
 ```
 
 
