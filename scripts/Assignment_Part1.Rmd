@@ -1,0 +1,159 @@
+---
+title: "Final_Assignment_Part1"
+author: "Aaron Malcolm Singleton"
+date: "2025-10-05"
+output: 
+  html_document:
+    toc: true
+    fig_width: 7
+    fig_height: 7
+---
+
+
+```{r setup, include=FALSE}
+
+# Import the gene_expression.tsv file using base R function
+gene_expression <- read.table("https://raw.githubusercontent.com/ghazkha/Assessment4/main/gene_expression.tsv", 
+                              header = TRUE, sep = "\t", row.names = 1)
+```
+
+```{r}
+# Show the first six genes
+head(gene_expression)
+```
+
+```{r}
+# Identify all numeric columns (all samples)
+numeric_cols <- sapply(gene_expression, is.numeric)
+
+```
+```{r}
+# Add a new column for mean expression
+gene_expression$mean_expression <- rowMeans(gene_expression[, numeric_cols], na.rm = TRUE)
+
+```
+
+```{r}
+# Show the first six genes along with their mean expression
+head(gene_expression)
+```
+
+```{r}
+# Sort by mean expression in descending order and display the top 10 genes
+top_10_genes <- gene_expression[order(-gene_expression$mean_expression), ]
+# Display top 10 genes
+head(top_10_genes, 10)
+
+```
+
+```{r}
+# Count the number of genes with mean expression < 10
+num_genes_low_expression <- sum(gene_expression$mean_expression < 10)
+num_genes_low_expression
+
+```
+
+```{r}
+# Log-transform mean expression for visualization
+log_mean <- log10(gene_expression$mean_expression + 1)
+# Plot histogram
+hist(log_mean,
+     main = "Histogram of Mean Gene Expression (log10)",
+     xlab = "log10(Mean Expression + 1)",
+     col = "skyblue",
+     border = "white")
+
+```
+
+```{r}
+# Import the growth_data.csv file
+growth_data <- read.csv("https://raw.githubusercontent.com/ghazkha/Assessment4/main/growth_data.csv", header = TRUE)
+
+
+```
+```{r}
+# Show the column names
+colnames(growth_data)
+
+```
+
+```{r}
+# Calculate growth over 2005-2020
+growth_data$growth_2005_2020 <- growth_data$Circumf_2020_cm - growth_data$Circumf_2005_cm
+
+# Calculate mean growth by site
+mean_growth <- aggregate(growth_2005_2020 ~ Site, data = growth_data, mean)
+mean_growth
+
+```
+
+```{r}
+# Create a boxplot of growth by site
+boxplot(growth_2005_2020 ~ Site, data = growth_data, 
+        main = "Tree Growth 2005-2020 by Site",
+        xlab = "Site", ylab = "Growth (cm)",
+        col = c("lightgreen", "lightcoral"))
+
+```
+
+```{r}
+# Perform a t-test to compare growth between the two sites
+t_test_result <- t.test(growth_2005_2020 ~ Site, data = growth_data)
+t_test_result
+
+```
+
+```{r}
+# Calculate mean and standard deviation of tree circumference at start (2005) and end (2020) for each site
+
+# Using aggregate for means
+mean_circumf <- aggregate(cbind(Circumf_2005_cm, Circumf_2020_cm) ~ Site, data = growth_data, mean)
+mean_circumf
+
+# Using aggregate for standard deviations
+sd_circumf <- aggregate(cbind(Circumf_2005_cm, Circumf_2020_cm) ~ Site, data = growth_data, sd)
+sd_circumf
+```
+
+```{r}
+# 7. Create a boxplot of tree circumference at start and end of study for both sites
+
+# Combine data into long format for easier plotting
+library(reshape2)
+growth_long <- melt(growth_data, id.vars = "Site", measure.vars = c("Circumf_2005_cm", "Circumf_2020_cm"),
+                    variable.name = "Year", value.name = "Circumference")
+
+# Boxplot
+boxplot(Circumference ~ Site + Year, data = growth_long,
+        main = "Tree Circumference at Start and End by Site",
+        xlab = "Site and Year", ylab = "Circumference (cm)",
+        col = c("lightblue", "lightgreen"),
+        names = c("Control 2005", "Control 2020", "Treatment 2005", "Treatment 2020"))
+```
+
+```{r}
+# Calculate mean growth over last 10 years (2010-2020) at each site
+
+growth_data$growth_2010_2020 <- growth_data$Circumf_2020_cm - growth_data$Circumf_2010_cm
+mean_growth_10yr <- aggregate(growth_2010_2020 ~ Site, data = growth_data, mean)
+mean_growth_10yr
+```
+```{r}
+# Perform t-test for 10-year growth between sites
+
+t_test_10yr <- t.test(growth_2010_2020 ~ Site, data = growth_data)
+t_test_10yr
+```
+```{r}
+#  Visualize 10-year growth distribution by site to make report more informative
+boxplot(growth_2010_2020 ~ Site, data = growth_data,
+        main = "Tree Growth 2010-2020 by Site",
+        xlab = "Site", ylab = "Growth (cm)",
+        col = c("lightcoral", "lightgreen"))
+```
+
+
+
+
+
+

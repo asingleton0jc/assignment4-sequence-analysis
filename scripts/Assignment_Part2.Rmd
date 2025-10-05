@@ -1,0 +1,210 @@
+---
+title: "Final_Assignment_Part2"
+author: "Aaron Malcolm Singleton"
+date: "2025-10-05"
+output:
+  html_document:
+    toc: true
+    fig_width: 7
+    fig_height: 7
+---
+
+```{r}
+# -------------------------------
+# Load required libraries
+# -------------------------------
+library(Biostrings)  # For reading and analyzing DNA and protein sequences
+library(ggplot2)
+library(dplyr)
+library(seqinr)      # For codon usage and k-mer analysis
+library(tidyr)       # For data manipulation in plotting codon usage
+
+```
+
+```{r}
+# -------------------------------
+# Download CDS files
+# -------------------------------
+
+# Mycoplasma hyopneumoniae ES-2 CDS (DNA)
+mhy_url <- "https://ftp.ensemblgenomes.ebi.ac.uk/pub/bacteria/release-62/fasta/bacteria_40_collection/mesomycoplasma_hyopneumoniae_gca_004768725/cds/Mesomycoplasma_hyopneumoniae_gca_004768725.ASM476872v1.cds.all.fa.gz"
+mhy_file <- "Mycoplasma_hyopneumoniae_ES2_CDS.fasta"
+download.file(mhy_url, mhy_file)
+
+# E. coli K12 CDS (DNA)
+ecoli_url <- "https://ftp.ensemblgenomes.ebi.ac.uk/pub/bacteria/release-62/fasta/bacteria_30_collection/escherichia_coli_k_12_gca_004803305/cds/Escherichia_coli_k_12_gca_004803305.ASM480330v1.cds.all.fa.gz"
+ecoli_gz <- "E_coli_K12_CDS.fa.gz"
+ecoli_file <- "E_coli_K12_CDS.fasta"
+
+download.file(ecoli_url, ecoli_gz, mode = "wb")
+R.utils::gunzip(ecoli_gz, destname = ecoli_file, overwrite = TRUE)
+
+# --- Load sequences ---
+ecoli_cds <- readDNAStringSet(ecoli_file)
+org_cds <- readDNAStringSet(mhy_file)
+
+```
+
+```{r}
+# -------------------------------
+# Count number of CDS
+# -------------------------------
+num_cds <- data.frame(
+  Organism = c("E_coli", "M_hyopneumoniae_ES2"),
+  Number_of_CDS = c(length(ecoli_cds), length(org_cds))
+)
+num_cds
+
+```
+
+```{r}
+# -------------------------------
+# Total coding DNA length
+# -------------------------------
+total_coding_length <- data.frame(
+  Organism = c("E_coli", "M_hyopneumoniae_ES2"),
+  Total_Coding_DNA_bp = c(sum(width(ecoli_cds)), sum(width(org_cds)))
+)
+total_coding_length
+
+```
+
+```{r}
+# -------------------------------
+# CDS length distribution
+# -------------------------------
+cds_lengths <- data.frame(
+  Length = c(width(ecoli_cds), width(org_cds)),
+  Organism = rep(c("E_coli", "M_hyopneumoniae_ES2"), 
+                 times = c(length(ecoli_cds), length(org_cds)))
+)
+
+ggplot(cds_lengths, aes(x = Organism, y = Length, fill = Organism)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Coding Sequence Length Distribution", y = "Length (bp)")
+
+# Mean and median CDS length
+cds_summary <- cds_lengths %>%
+  group_by(Organism) %>%
+  summarise(
+    Mean_Length = mean(Length),
+    Median_Length = median(Length)
+  )
+cds_summary
+
+```
+
+```{r}
+# -------------------------------
+# Nucleotide frequency (fixed for single sequence)
+# -------------------------------
+ecoli_mat <- alphabetFrequency(ecoli_cds, as.prob = TRUE)[, c("A","C","G","T")]
+if (is.null(dim(ecoli_mat))) ecoli_mat <- matrix(ecoli_mat, nrow=1)
+ecoli_nt_freq <- colMeans(ecoli_mat)
+
+org_mat <- alphabetFrequency(org_cds, as.prob = TRUE)[, c("A","C","G","T")]
+if (is.null(dim(org_mat))) org_mat <- matrix(org_mat, nrow=1)
+org_nt_freq <- colMeans(org_mat)
+
+nt_freq <- data.frame(
+  Base = rep(c("A","C","G","T"), 2),
+  Frequency = c(ecoli_nt_freq, org_nt_freq),
+  Organism = rep(c("E_coli","M_hyopneumoniae_ES2"), each=4)
+)
+
+ggplot(nt_freq, aes(x=Base, y=Frequency, fill=Organism)) +
+  geom_bar(stat="identity", position="dodge") +
+  labs(title="Nucleotide Frequency", y="Frequency")
+
+```
+
+```{r}
+# -------------------------------
+# Translate CDS to proteins using Biostrings
+# -------------------------------
+ecoli_prot <- Biostrings::translate(ecoli_cds)
+org_prot <- Biostrings::translate(org_cds)
+
+# Function to calculate amino acid frequency
+aa_freq <- function(prot_set) {
+  aa_vec <- unlist(strsplit(as.character(prot_set), split=""))
+  table(factor(aa_vec, levels=AA_STANDARD)) / length(aa_vec)
+}
+
+ecoli_aa_freq <- aa_freq(ecoli_prot)
+org_aa_freq <- aa_freq(org_prot)
+
+aa_df <- data.frame(
+  AminoAcid = rep(names(ecoli_aa_freq), 2),
+  Frequency = c(as.numeric(ecoli_aa_freq), as.numeric(org_aa_freq)),
+  Organism = rep(c("E_coli", "M_hyopneumoniae_ES2"), each=20)
+)
+
+ggplot(aa_df, aes(x=AminoAcid, y=Frequency, fill=Organism)) +
+  geom_bar(stat="identity", position="dodge") +
+  labs(title="Amino Acid Frequency", y="Frequency")
+
+```
+
+```{r}
+# -------------------------------
+# Codon usage 
+# -------------------------------
+
+# Function to get codon usage frequencies correctly
+get_codon_usage <- function(cds) {
+  codons <- unlist(lapply(as.character(cds), function(seq) {
+    seq <- gsub("[^ACGT]", "", seq)  # remove invalid chars
+    substring(seq, seq(1, nchar(seq) - 2, by = 3), seq(3, nchar(seq), by = 3))
+  }))
+  table(codons)
+}
+
+# Calculate codon usage for each organism
+ecoli_codon_usage <- get_codon_usage(ecoli_cds)
+org_codon_usage <- get_codon_usage(org_cds)
+
+# Combine into one data frame
+codon_df <- data.frame(
+  Codon = union(names(ecoli_codon_usage), names(org_codon_usage))
+) %>%
+  mutate(
+    E_coli = ecoli_codon_usage[Codon],
+    M_hyopneumoniae_ES2 = org_codon_usage[Codon]
+  ) %>%
+  replace(is.na(.), 0)
+
+# Take the first 20 codons for example plotting
+codon_melt <- codon_df[1:20, ] %>%
+  tidyr::pivot_longer(cols = -Codon, names_to = "Organism", values_to = "Frequency")
+
+# Plot
+ggplot(codon_melt, aes(x = Codon, y = Frequency, fill = Organism)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme_minimal() +
+  labs(title = "Codon Usage Frequency (First 20 Codons)", y = "Frequency") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+```{r}
+# -------------------------------
+# K-mer analysis for proteins (length 3)
+# -------------------------------
+count_kmers <- function(prot_set, k) {
+  aa_seq <- unlist(strsplit(as.character(prot_set), ""))
+  kmers <- sapply(1:(length(aa_seq)-k+1), function(i) paste(aa_seq[i:(i+k-1)], collapse=""))
+  sort(table(kmers), decreasing=TRUE)
+}
+
+# Top 10 overrepresented 3-mers in Mycoplasma
+org_kmers_3 <- count_kmers(org_prot, 3)
+head(org_kmers_3, 10)
+
+# Compare with E. coli
+ecoli_kmers_3 <- count_kmers(ecoli_prot, 3)
+head(ecoli_kmers_3, 10)
+
+```
+
