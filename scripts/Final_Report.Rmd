@@ -23,18 +23,23 @@ gene_expression <- read.table("https://raw.githubusercontent.com/ghazkha/Assessm
 ```
 
 ```{r}
-# Show the first six genes
+# Question 1: Show the first six genes
 head(gene_expression)
+
+#Description:
+#I imported a tab-separated values file containing gene expression data. Checking the first rows ensures the data loaded correctly.
+
 ```
 
 ```{r}
 # Identify all numeric columns (all samples)
 numeric_cols <- sapply(gene_expression, is.numeric)
-
+#Description:
+#This selects columns with numeric values, which represent gene expression measurements. This step ensures that calculations like mean expression are only done on numeric data.
 ```
 
 ```{r}
-# Add a new column for mean expression
+# Question 2: Add a new column for mean expression
 gene_expression$mean_expression <- rowMeans(gene_expression[, numeric_cols], na.rm = TRUE)
 
 ```
@@ -42,25 +47,30 @@ gene_expression$mean_expression <- rowMeans(gene_expression[, numeric_cols], na.
 ```{r}
 # Show the first six genes along with their mean expression
 head(gene_expression)
+#Description:
+#This selects columns with numeric values, which represent gene expression measurements. This step ensures that calculations like mean expression are only done on numeric data. I compute the average expression for each gene across all samples. na.rm = TRUE ensures missing values do not affect the calculation.
 ```
 
 ```{r}
-# Sort by mean expression in descending order and display the top 10 genes
+# Question 3: Sort by mean expression in descending order and display the top 10 genes
 top_10_genes <- gene_expression[order(-gene_expression$mean_expression), ]
 # Display top 10 genes
 head(top_10_genes, 10)
+#Description:
+#I ranked genes by their mean expression to find the 10 most highly expressed genes.
 
 ```
 
 ```{r}
-# Count the number of genes with mean expression < 10
+# Question 4: Count the number of genes with mean expression < 10
 num_genes_low_expression <- sum(gene_expression$mean_expression < 10)
 num_genes_low_expression
-
+#Description:
+#This identifies genes with very low expression, which might be considered inactive or not expressed under the given conditions.
 ```
 
 ```{r}
-# Log-transform mean expression for visualization
+# Question 5: Log-transform mean expression for visualization
 log_mean <- log10(gene_expression$mean_expression + 1)
 # Plot histogram
 hist(log_mean,
@@ -69,12 +79,13 @@ hist(log_mean,
      col = "skyblue",
      border = "white")
 
+#Description:
+#A histogram of log-transformed mean expression helps visualize the distribution of gene expression, especially when values vary widely.
 ```
 
 ```{r}
-# Import the growth_data.csv file
+# Question 6: Import the growth_data.csv file
 growth_data <- read.csv("https://raw.githubusercontent.com/ghazkha/Assessment4/main/growth_data.csv", header = TRUE)
-
 
 ```
 
@@ -82,6 +93,8 @@ growth_data <- read.csv("https://raw.githubusercontent.com/ghazkha/Assessment4/m
 # Show the column names
 colnames(growth_data)
 
+#Description:
+#I loaded a dataset containing tree circumference measurements for different sites and years. Checking column names ensures proper referencing in subsequent calculations.
 ```
 
 ```{r}
@@ -92,6 +105,8 @@ growth_data$growth_2005_2020 <- growth_data$Circumf_2020_cm - growth_data$Circum
 mean_growth <- aggregate(growth_2005_2020 ~ Site, data = growth_data, mean)
 mean_growth
 
+#Description:
+#Growth is measured as the difference in circumference over 15 years. We then calculate the average growth for each site.
 ```
 
 ```{r}
@@ -100,6 +115,8 @@ boxplot(growth_2005_2020 ~ Site, data = growth_data,
         main = "Tree Growth 2005-2020 by Site",
         xlab = "Site", ylab = "Growth (cm)",
         col = c("lightgreen", "lightcoral"))
+#Description:
+#Growth is measured as the difference in circumference over 15 years. We then calculate the average growth for each site.
 
 ```
 
@@ -108,10 +125,12 @@ boxplot(growth_2005_2020 ~ Site, data = growth_data,
 t_test_result <- t.test(growth_2005_2020 ~ Site, data = growth_data)
 t_test_result
 
+#Description:
+#Growth is measured as the difference in circumference over 15 years. We then calculate the average growth for each site.
 ```
 
 ```{r}
-# Calculate mean and standard deviation of tree circumference at start (2005) and end (2020) for each site
+# Question 7: Calculate mean and standard deviation of tree circumference at start (2005) and end (2020) for each site
 
 # Using aggregate for means
 mean_circumf <- aggregate(cbind(Circumf_2005_cm, Circumf_2020_cm) ~ Site, data = growth_data, mean)
@@ -120,6 +139,10 @@ mean_circumf
 # Using aggregate for standard deviations
 sd_circumf <- aggregate(cbind(Circumf_2005_cm, Circumf_2020_cm) ~ Site, data = growth_data, sd)
 sd_circumf
+
+#Description:
+#I summarize tree size at the start and end of the study, including variability (SD).
+
 ```
 
 ```{r}
@@ -136,10 +159,13 @@ boxplot(Circumference ~ Site + Year, data = growth_long,
         xlab = "Site and Year", ylab = "Circumference (cm)",
         col = c("lightblue", "lightgreen"),
         names = c("Control 2005", "Control 2020", "Treatment 2005", "Treatment 2020"))
+#Description:
+#We reshape the data to long format and create a boxplot to visualize tree sizes at both years for each site.
+
 ```
 
 ```{r}
-# Calculate mean growth over last 10 years (2010-2020) at each site
+# Question 9: Calculate mean growth over last 10 years (2010-2020) at each site
 
 growth_data$growth_2010_2020 <- growth_data$Circumf_2020_cm - growth_data$Circumf_2010_cm
 mean_growth_10yr <- aggregate(growth_2010_2020 ~ Site, data = growth_data, mean)
@@ -147,7 +173,7 @@ mean_growth_10yr
 ```
 
 ```{r}
-# Perform t-test for 10-year growth between sites
+# Question 10: Perform t-test for 10-year growth between sites
 
 t_test_10yr <- t.test(growth_2010_2020 ~ Site, data = growth_data)
 t_test_10yr
@@ -166,11 +192,14 @@ boxplot(growth_2010_2020 ~ Site, data = growth_data,
 # Part 2: 
 # Load required libraries
 # -------------------------------
-library(Biostrings)  # For reading and analyzing DNA and protein sequences
-library(ggplot2)
-library(dplyr)
-library(seqinr)      # For codon usage and k-mer analysis
-library(tidyr)       # For data manipulation in plotting codon usage
+library(seqinr)
+library(R.utils)
+
+#Description 
+# This chunk loads essential R libraries. 
+# 'seqinr' is used for sequence reading, translation, and codon analysis. 
+# 'R.utils' is used to decompress .gz files.
+
 
 ```
 
@@ -179,228 +208,193 @@ library(tidyr)       # For data manipulation in plotting codon usage
 # Download CDS files
 # -------------------------------
 
-# Mycoplasma hyopneumoniae ES-2 CDS (DNA)
+# Mycoplasma hyopneumoniae ES-2 CDS
 mhy_url <- "https://ftp.ensemblgenomes.ebi.ac.uk/pub/bacteria/release-62/fasta/bacteria_40_collection/mesomycoplasma_hyopneumoniae_gca_004768725/cds/Mesomycoplasma_hyopneumoniae_gca_004768725.ASM476872v1.cds.all.fa.gz"
-mhy_file <- "Mycoplasma_hyopneumoniae_ES2_CDS.fasta"
-download.file(mhy_url, mhy_file)
+mhy_file <- "M_hyopneumoniae_ES2_CDS.fasta"
+download.file(mhy_url, destfile = "M_hyopneumoniae_ES2_CDS.fa.gz", mode="wb")
+R.utils::gunzip("M_hyopneumoniae_ES2_CDS.fa.gz", destname = mhy_file, overwrite = TRUE)
 
-# E. coli K12 CDS (DNA)
+# E. coli K12 CDS
 ecoli_url <- "https://ftp.ensemblgenomes.ebi.ac.uk/pub/bacteria/release-62/fasta/bacteria_30_collection/escherichia_coli_k_12_gca_004803305/cds/Escherichia_coli_k_12_gca_004803305.ASM480330v1.cds.all.fa.gz"
-ecoli_gz <- "E_coli_K12_CDS.fa.gz"
 ecoli_file <- "E_coli_K12_CDS.fasta"
+download.file(ecoli_url, destfile = "E_coli_K12_CDS.fa.gz", mode="wb")
+R.utils::gunzip("E_coli_K12_CDS.fa.gz", destname = ecoli_file, overwrite = TRUE)
 
-download.file(ecoli_url, ecoli_gz, mode = "wb")
-R.utils::gunzip(ecoli_gz, destname = ecoli_file, overwrite = TRUE)
+# --- Load sequences using seqinr ---
+org_cds <- read.fasta(file = mhy_file, seqtype = "DNA", as.string = TRUE)
+ecoli_cds <- read.fasta(file = ecoli_file, seqtype = "DNA", as.string = TRUE)
 
-# --- Load sequences ---
-ecoli_cds <- readDNAStringSet(ecoli_file)
-org_cds <- readDNAStringSet(mhy_file)
+#Description:
+# Downloads the CDS (coding sequences) of *E. coli* and *M. hyopneumoniae* from Ensembl Bacteria.
+# Files are uncompressed with gunzip() and read into R using read.fasta().
+
 
 ```
 
 ```{r}
 # -------------------------------
-# Count number of CDS
+# Question 1: Count number of CDS
 # -------------------------------
 num_cds <- data.frame(
   Organism = c("E_coli", "M_hyopneumoniae_ES2"),
   Number_of_CDS = c(length(ecoli_cds), length(org_cds))
 )
-num_cds
+knitr::kable(num_cds, caption="Number of CDS in each organism")
+
+#Description:
+# Calculates the number of CDS in each organism. 
+# *E. coli* has more CDS than *M. hyopneumoniae*, reflecting its larger genome and gene content.
+
 
 ```
 
 ```{r}
 # -------------------------------
-# Total coding DNA length
+# Question 2: Total coding DNA length
 # -------------------------------
+len_ecoli <- sapply(ecoli_cds, nchar)
+len_org   <- sapply(org_cds, nchar)
+
 total_coding_length <- data.frame(
   Organism = c("E_coli", "M_hyopneumoniae_ES2"),
-  Total_Coding_DNA_bp = c(sum(width(ecoli_cds)), sum(width(org_cds)))
+  Total_Coding_DNA_bp = c(sum(len_ecoli), sum(len_org)),
+  Mean_CDS_Length = c(mean(len_ecoli), mean(len_org)),
+  Median_CDS_Length = c(median(len_ecoli), median(len_org))
 )
-total_coding_length
+knitr::kable(total_coding_length, caption="Total coding DNA and CDS length summary")
+
+# Boxplot of CDS lengths
+boxplot(list(E_coli=len_ecoli, M_hyopneumoniae_ES2=len_org),
+        ylab="CDS length (bp)", main="CDS length distributions")
+
+#Description:
+# Calculates total, mean, and median CDS lengths for each organism. 
+# *E. coli* has more total coding DNA, while *M. hyopneumoniae* has longer average CDS, 
+# likely due to its compact genome and fewer genes.
+
 
 ```
 
 ```{r}
 # -------------------------------
-# CDS length distribution
+# Question 3: DNA base frequencies
 # -------------------------------
-cds_lengths <- data.frame(
-  Length = c(width(ecoli_cds), width(org_cds)),
-  Organism = rep(c("E_coli", "M_hyopneumoniae_ES2"), 
-                 times = c(length(ecoli_cds), length(org_cds)))
-)
+dna_ecoli <- unlist(lapply(ecoli_cds, function(seq) s2c(seq[[1]])))
+dna_org   <- unlist(lapply(org_cds,   function(seq) s2c(seq[[1]])))
 
-ggplot(cds_lengths, aes(x = Organism, y = Length, fill = Organism)) +
-  geom_boxplot() +
-  theme_minimal() +
-  labs(title = "Coding Sequence Length Distribution", y = "Length (bp)")
+# Base frequencies
+basefreq_ecoli <- count(dna_ecoli, 1)
+basefreq_org   <- count(dna_org, 1)
 
-# Mean and median CDS length
-cds_summary <- cds_lengths %>%
-  group_by(Organism) %>%
-  summarise(
-    Mean_Length = mean(Length),
-    Median_Length = median(Length)
-  )
-cds_summary
+# Plot DNA base frequencies
+barplot(as.numeric(basefreq_ecoli), names.arg=names(basefreq_ecoli),
+        main="E_coli DNA base frequency", ylab="Count")
+barplot(as.numeric(basefreq_org), names.arg=names(basefreq_org),
+        main="M_hyopneumoniae_ES2 DNA base frequency", ylab="Count")
+#Description:
+# Calculates base composition (A, T, C, G) for CDS in each organism.
+# *M. hyopneumoniae* shows AT-rich content, typical of Mycoplasmas, 
+# whereas *E. coli* has a more balanced base composition.
+
+
 
 ```
 
 ```{r}
 # -------------------------------
-# Nucleotide frequency (fixed for single sequence)
+# Question 4: Translate CDS to protein and AA frequencies
 # -------------------------------
-ecoli_mat <- alphabetFrequency(ecoli_cds, as.prob = TRUE)[, c("A","C","G","T")]
-if (is.null(dim(ecoli_mat))) ecoli_mat <- matrix(ecoli_mat, nrow=1)
-ecoli_nt_freq <- colMeans(ecoli_mat)
 
-org_mat <- alphabetFrequency(org_cds, as.prob = TRUE)[, c("A","C","G","T")]
-if (is.null(dim(org_mat))) org_mat <- matrix(org_mat, nrow=1)
-org_nt_freq <- colMeans(org_mat)
+# Translate CDS into protein
+prot_ecoli <- lapply(ecoli_cds, function(seq) translate(s2c(seq[[1]])))
+prot_org   <- lapply(org_cds,   function(seq) translate(s2c(seq[[1]])))
 
-nt_freq <- data.frame(
-  Base = rep(c("A","C","G","T"), 2),
-  Frequency = c(ecoli_nt_freq, org_nt_freq),
-  Organism = rep(c("E_coli","M_hyopneumoniae_ES2"), each=4)
-)
+# Amino acid frequencies
+aa <- unique(unlist(prot_ecoli))
+aa <- aa[aa != "*"]
 
-ggplot(nt_freq, aes(x=Base, y=Frequency, fill=Organism)) +
-  geom_bar(stat="identity", position="dodge") +
-  labs(title="Nucleotide Frequency", y="Frequency")
+aafreq_ecoli <- count(unlist(prot_ecoli), wordsize=1, alphabet=aa)
+aafreq_org   <- count(unlist(prot_org),   wordsize=1, alphabet=aa)
+
+barplot(as.numeric(aafreq_ecoli), names.arg=names(aafreq_ecoli),
+        las=2, main="E_coli amino acid frequencies", ylab="Count")
+barplot(as.numeric(aafreq_org), names.arg=names(aafreq_org),
+        las=2, main="M_hyopneumoniae_ES2 amino acid frequencies", ylab="Count")
+
+
+#Description:
+# Translates CDS into protein sequences and calculates amino acid frequencies.
+# Differences in amino acid usage reflect codon preferences, genome composition, and protein requirements.
+
+
 
 ```
 
 ```{r}
 # -------------------------------
-# Translate CDS to proteins using Biostrings
+# Question 5: Codon usage bias (RSCU)
 # -------------------------------
-ecoli_prot <- Biostrings::translate(ecoli_cds)
-org_prot <- Biostrings::translate(org_cds)
+# Codon usage (RSCU) example
+rscu_ecoli <- uco(dna_ecoli, index="rscu", as.data.frame=TRUE)
+rscu_org   <- uco(dna_org,   index="rscu", as.data.frame=TRUE)
 
-# Function to calculate amino acid frequency
-aa_freq <- function(prot_set) {
-  aa_vec <- unlist(strsplit(as.character(prot_set), split=""))
-  table(factor(aa_vec, levels=AA_STANDARD)) / length(aa_vec)
-}
+barplot(rscu_ecoli$freq, names.arg=rscu_ecoli$codon,
+        las=2, main="E_coli codon usage (RSCU)", cex.names=0.6, ylab="RSCU")
+barplot(rscu_org$freq, names.arg=rscu_org$codon,
+        las=2, main="M_hyopneumoniae_ES2 codon usage (RSCU)", cex.names=0.6, ylab="RSCU")
 
-ecoli_aa_freq <- aa_freq(ecoli_prot)
-org_aa_freq <- aa_freq(org_prot)
+## Computes and plots Relative Synonymous Codon Usage (RSCU) values.
+# *M. hyopneumoniae* shows strong codon bias due to its AT-rich genome.
+# *E. coli* displays more uniform codon usage, reflecting broader codon preference.
 
-aa_df <- data.frame(
-  AminoAcid = rep(names(ecoli_aa_freq), 2),
-  Frequency = c(as.numeric(ecoli_aa_freq), as.numeric(org_aa_freq)),
-  Organism = rep(c("E_coli", "M_hyopneumoniae_ES2"), each=20)
-)
-
-ggplot(aa_df, aes(x=AminoAcid, y=Frequency, fill=Organism)) +
-  geom_bar(stat="identity", position="dodge") +
-  labs(title="Amino Acid Frequency", y="Frequency")
 
 ```
 
 ```{r}
 # -------------------------------
-# Codon usage 
+# Q6: Protein k-mers (3-5)
 # -------------------------------
 
-# Function to get codon usage frequencies correctly
-get_codon_usage <- function(cds) {
-  codons <- unlist(lapply(as.character(cds), function(seq) {
-    seq <- gsub("[^ACGT]", "", seq)  # remove invalid chars
-    substring(seq, seq(1, nchar(seq) - 2, by = 3), seq(3, nchar(seq), by = 3))
-  }))
-  table(codons)
-}
-
-# Calculate codon usage for each organism
-ecoli_codon_usage <- get_codon_usage(ecoli_cds)
-org_codon_usage <- get_codon_usage(org_cds)
-
-# Combine into one data frame
-codon_df <- data.frame(
-  Codon = union(names(ecoli_codon_usage), names(org_codon_usage))
-) %>%
-  mutate(
-    E_coli = ecoli_codon_usage[Codon],
-    M_hyopneumoniae_ES2 = org_codon_usage[Codon]
-  ) %>%
-  replace(is.na(.), 0)
-
-# Take the first 20 codons for example plotting
-codon_melt <- codon_df[1:20, ] %>%
-  tidyr::pivot_longer(cols = -Codon, names_to = "Organism", values_to = "Frequency")
-
-# Plot
-ggplot(codon_melt, aes(x = Codon, y = Frequency, fill = Organism)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  theme_minimal() +
-  labs(title = "Codon Usage Frequency (First 20 Codons)", y = "Frequency") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-```
-
-```{r}
-# -------------------------------
-# K-mer analysis for proteins (length 3)
-# -------------------------------
-count_kmers <- function(prot_set, k) {
-  aa_seq <- unlist(strsplit(as.character(prot_set), ""))
-  kmers <- sapply(1:(length(aa_seq)-k+1), function(i) paste(aa_seq[i:(i+k-1)], collapse=""))
-  sort(table(kmers), decreasing=TRUE)
-}
-
-# Top 10 overrepresented 3-mers in Mycoplasma
-org_kmers_3 <- count_kmers(org_prot, 3)
-head(org_kmers_3, 10)
-
-# Compare with E. coli
-ecoli_kmers_3 <- count_kmers(ecoli_prot, 3)
-head(ecoli_kmers_3, 10)
+# Convert CDS strings to character vectors and translate
+prots_ecoli <- unlist(lapply(ecoli_cds, function(seq) translate(s2c(seq[[1]]))))
+prots_org   <- unlist(lapply(org_cds,   function(seq) translate(s2c(seq[[1]]))))
 
 
-# Prepare data: take top 10 k-mers for each organism
-top_org_kmers <- head(org_kmers_3, 10)
-top_ecoli_kmers <- head(ecoli_kmers_3, 10)
+# Amino acid alphabet (drop stop codon '*')
+aa <- unique(prots_ecoli)
+aa <- aa[aa != "*"]
 
-# Combine into a data frame
-kmers_df <- data.frame(
-  Kmer = c(names(top_org_kmers), names(top_ecoli_kmers)),
-  Frequency = c(as.numeric(top_org_kmers), as.numeric(top_ecoli_kmers)),
-  Organism = rep(c("M. hyopneumoniae ES2", "E. coli"), each = 10)
-)
+# k = 3
+k3_ecoli <- count(prots_ecoli, wordsize=3, alphabet=aa)
+k3_org <- count(prots_org, wordsize=3, alphabet=aa)
 
-# Plot
-ggplot(kmers_df, aes(x = reorder(Kmer, -Frequency), y = Frequency, fill = Organism)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Top 10 Overrepresented 3-mers in Proteins",
-       x = "3-mer",
-       y = "Frequency") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+top_over_org3  <- head(sort(k3_org, decreasing=TRUE), 10)
+top_under_org3 <- head(sort(k3_org, decreasing=FALSE), 10)
 
-# Bottom 10 (underrepresented) 3-mers for each organism
-bottom_org_kmers <- tail(org_kmers_3, 10)
-bottom_ecoli_kmers <- tail(ecoli_kmers_3, 10)
+barplot(as.numeric(top_over_org3), names.arg=names(top_over_org3),
+        las=2, main="M_hyopneumoniae_ES2: Top 10 over-represented 3-mers")
+barplot(as.numeric(top_under_org3), names.arg=names(top_under_org3),
+        las=2, main="M_hyopneumoniae_ES2: Top 10 under-represented 3-mers")
 
-# Combine into a data frame
-under_kmers_df <- data.frame(
-  Kmer = c(names(bottom_org_kmers), names(bottom_ecoli_kmers)),
-  Frequency = c(as.numeric(bottom_org_kmers), as.numeric(bottom_ecoli_kmers)),
-  Organism = rep(c("M. hyopneumoniae ES2", "E. coli"), each = 10)
-)
+# Compare with E. coli counts for same k-mers
+k3_ecoli[names(top_over_org3)]
+k3_ecoli[names(top_under_org3)]
 
-# Plot
-ggplot(under_kmers_df, aes(x = reorder(Kmer, Frequency), y = Frequency, fill = Organism)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Top 10 Underrepresented 3-mers in Proteins",
-       x = "3-mer",
-       y = "Frequency") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# k = 4
+k4_org <- count(prots_org, wordsize=4, alphabet=aa)
+top_over_org4  <- head(sort(k4_org, decreasing=TRUE), 10)
+top_under_org4 <- head(sort(k4_org, decreasing=FALSE),10)
+
+# k = 5
+k5_org <- count(prots_org, wordsize=5, alphabet=aa)
+top_over_org5  <- head(sort(k5_org, decreasing=TRUE), 10)
+top_under_org5 <- head(sort(k5_org, decreasing=FALSE),10)
 
 
+#Description:
+## Calculates 3–5-mer amino acid patterns in protein sequences.
+# Plots the most and least frequent 3-mers in *M. hyopneumoniae* and compares them with *E. coli*.
+# These patterns reflect differences in codon usage, protein structure, and genome evolution.
 
 ```
 
